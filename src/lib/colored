@@ -21,7 +21,7 @@ if [ "$ISTERM" = "--force-term" ]; then
 	export CYAN="${ESC}${HIGH}36m"
 	export GRAY="${ESC}${HIGH}37m"
 	export BLACK="${ESC}${LOW}30m"
-	export NORMAL="${ESC}${LOW}30m"
+	export NORMAL="${ESC}0m"
 fi
 
 

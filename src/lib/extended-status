@@ -118,7 +118,8 @@ execute_extended_status() {
 	lvl=$?
 	_debug "returned from $@ $lvl"
 
-	if [ "$(echo "$output" | head -n 1 )" = "[extended status]" ]; then
+#	if [ "$(echo "$output" | head -n 1 )" = "[extended status]" ]; then
+	if ( echo "$output" | grep "[extended status]" > /dev/null ); then
 		NEEDSOME_LASTSTAT="$(echo "$output" | grep -F "[status]" | cut -d "]" -f 2- | xargs )"
 		NEEDSOME_LASTLEVEL="$(echo "$output" | grep -F "[level]" | cut -d "]" -f 2- | xargs )"
 		NEEDSOME_LASTINFO="$(echo "$output" | grep -F "[info]" | cut -d "]" -f 2- | xargs )"
