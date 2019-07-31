@@ -1,0 +1,22 @@
+#!/bin/bash
+
+before '
+'
+
+testdata="simple|simple
+umlautäöü|umlautaeoeue
+some space|some_space
+multi  space|multi_space
+trailing space |trailing_space
+UPPERCASE|uppercase"
+while read line; do
+	input="$(echo "$line" | cut -d "|" -f 1)"
+	expected="$(echo "$line" | cut -d "|" -f 2)"
+	it "translate $input to $expected" '
+		result="$(export NEEDSOME_CORE_HOME=$NEEDSOME_TEST_TESTCASE_DIR/../../src/; echo "'"$input"'" | $NEEDSOME_TEST_TESTCASE_DIR/../../src/bin/translate-filename )"
+		assert "equal" "'"$expected"'" = "$result"
+	'
+done < <(echo "$testdata")
+
+
+

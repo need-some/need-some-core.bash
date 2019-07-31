@@ -1,9 +1,0 @@
-
-if [ -z "$NEEDSOME_HOME" ]; then
-	export NEEDSOME_HOME=/usr/local/lib/need-some
-fi
-
-. ${NEEDSOME_HOME}/need-some-core.bash/lib/logging
-. ${NEEDSOME_HOME}/need-some-core.bash/lib/colored
-. ${NEEDSOME_HOME}/need-some-core.bash/lib/extended-status
-

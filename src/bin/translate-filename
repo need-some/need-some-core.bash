@@ -1,0 +1,9 @@
+#!/bin/bash
+
+. need-some-init
+
+content="$(${NEEDSOME_CORE_HOME}/lib/read-param "$@")"
+
+echo "${content}_EOL" | sed -f ${NEEDSOME_CORE_HOME}/lib/translate-filename.sed | tr -c "a-zA-Z0-9._" "_" | tr -s "_" "_" | tr "A-Z" "a-z" | sed -e "s/_eol_//g" | sed -e "s/_eol//g"
+echo
+

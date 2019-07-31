@@ -1,0 +1,18 @@
+#!/bin/bash
+
+before '
+'
+
+it "readparam from param" '
+	result="$($NEEDSOME_TEST_TESTCASE_DIR/../../src/lib/read-param test 1 )"
+	expected="test 1"
+	assert "equal" "$expected" = "$result"
+'
+
+it "readparam from stdin" '
+	result="$(echo test 2 | $NEEDSOME_TEST_TESTCASE_DIR/../../src/lib/read-param )"
+	expected="test 2"
+	assert "equal" "$expected" = "$result"
+'
+
+
