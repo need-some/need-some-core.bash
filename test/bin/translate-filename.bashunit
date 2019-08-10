@@ -4,15 +4,22 @@ before '
 '
 
 testdata="simple|simple
-umlautäöü|umlautaeoeue
+umlautäöü€|umlautaeoeuee
 some space|some_space
 multi  space|multi_space
-trailing space |trailing_space
-UPPERCASE|uppercase"
+multi{LINE}space|multi_space
+trailing space{SPACE}{SPACE}|trailing_space
+{SPACE}{SPACE}leading space|leading_space
+{TAB}some{TAB}tab{TAB} |some_tab
+UPPERUMLAUTÄÖÜ|upperumlautaeoeue
+UPPERCASE|uppercase
+|_
+{SPACE}|_"
 while read line; do
-	input="$(echo "$line" | cut -d "|" -f 1)"
+	inputmasked="$(echo "$line" | cut -d "|" -f 1 )"
+	input="$(echo "$inputmasked" | sed -e "s/{LINE}/\n/g" | sed -e "s/{SPACE}/ /g" | sed -e "s/{TAB}/\t/g" )"
 	expected="$(echo "$line" | cut -d "|" -f 2)"
-	it "translate $input to $expected" '
+	it "translate $inputmasked to $expected" '
 		result="$(export NEEDSOME_CORE_HOME=$NEEDSOME_TEST_TESTCASE_DIR/../../src/; echo "'"$input"'" | $NEEDSOME_TEST_TESTCASE_DIR/../../src/bin/translate-filename )"
 		assert "equal" "'"$expected"'" = "$result"
 	'
