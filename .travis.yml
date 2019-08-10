@@ -1,6 +1,6 @@
 language: bash
 env:
-  - NEEDSOME_HOME=./needsomelib PATH=${PATH}:${PWD}/needsomelib/need-some-init.bash/src/bin/
+  - NEEDSOME_HOME=${PWD}/needsomelib PATH=${PATH}:${PWD}/needsomelib/need-some-init.bash/src/bin/
 before_script:
   - mkdir needsomelib
   - git clone "https://github.com/need-some/need-some-init.bash.git" needsomelib/need-some-init.bash
