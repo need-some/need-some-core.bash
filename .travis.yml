@@ -1,10 +1,13 @@
 language: bash
 env:
-  - NEEDSOME_HOME=${PWD}/needsomelib PATH=${PATH}:${PWD}/needsomelib/need-some-init.bash/src/bin/
+  - NEEDSOME_HOME=${PWD}/needsomelib PATH=${PATH}:${PWD}/needsomelib/need-some-init.bash/bin/
 before_script:
   - mkdir needsomelib
-  - git clone "https://github.com/need-some/need-some-init.bash.git" needsomelib/need-some-init.bash
-  - git clone "https://github.com/need-some/need-some-test.bash.git" needsomelib/need-some-test.bash
+  - mkdir needsomedown
+  - git clone "https://github.com/need-some/need-some-init.bash.git" needsomedown/need-some-init.bash
+  - git clone "https://github.com/need-some/need-some-test.bash.git" needsomedown/need-some-test.bash
+  - mkdir needsomelib/need-some-init.bash && cp -a needsomedown/need-some-init.bash/src/* needsomelib/need-some-init.bash/
+  - mkdir needsomelib/need-some-test.bash && cp -a needsomedown/need-some-test.bash/src/* needsomelib/need-some-test.bash/
 script:
-  - ./needsomelib/need-some-test.bash/src/bin/bashunit ./test
+  - ./needsomelib/need-some-test.bash/bin/bashunit ./test
 
