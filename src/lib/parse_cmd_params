@@ -1,0 +1,125 @@
+
+function parse_cmd_params() {
+
+	extra=0
+	forceextra=0
+
+	vardecl=
+	varusage=
+
+	while [ $# -gt 0 ]; do
+		if [ "$1" = "--extra" ]; then
+			extra=1
+		elif [ "$1" = "--forceextra" ]; then
+			forceextra=1
+			extra=1
+		else
+			constraint=0
+			flag=0
+			optional=0
+			paramname=$(echo "$1" | cut -d ":" -f 1 )
+			paramnameint=$(echo "${paramname}" | tr "-" "_" )
+			p1=$(echo "$1" | cut -d ":" -f 2 )
+			p2=$(echo "$1" | cut -d ":" -f 3 )
+			if [ "${p1}" = "c" -o "${p2}" = "c" ]; then
+				constraint=1
+			fi
+			if [ "${p1}" = "f" -o "${p2}" = "f" ]; then
+				flag=1
+			fi
+			if [ "${p1}" = "o" -o "${p2}" = "o" ]; then
+				optional=1
+			fi
+			varloop="${varloop}
+			\"--${paramname}\")
+				${paramnameint}_exist=1"
+
+			vardecl="${vardecl}
+	${paramnameint}_exist=0"
+			if ( is nok ${flag} ); then
+				vardecl="${vardecl}
+	${paramnameint}="
+				varloop="${varloop}
+				shift
+				${paramnameint}=\"\$1\""
+				if ( is ok ${constraint} ); then
+					varloop="${varloop}
+				if ! ( check_${paramnameint} \"\$1\" ${paramnameint} 1>&2 ); then
+					exitcode=\$PIPESTATUS
+					echo_usage__ 1>&2
+					exit \$exitcode
+				fi"
+				fi
+			fi
+			varloop="${varloop}
+				;;"
+			if ( is nok ${optional} ); then
+				varcheck="${varcheck}
+	if ( is nok \${${paramnameint}_exist} ); then
+		echo_usage__ 1>&2
+		exit 1
+	fi"
+				if ( is ok ${flag} ); then
+					varusage="${varusage} --${paramname}"
+				else
+					varusage="${varusage} --${paramname} value"
+				fi
+			else
+				if ( is ok ${flag} ); then
+					varusage="${varusage} [--${paramname}]"
+				else
+					varusage="${varusage} [--${paramname} value]"
+				fi
+			fi
+
+		fi
+		shift
+	done
+
+
+	if ( is ok ${forceextra} ); then
+		varusage="${varusage} param [param...]"
+	elif ( is ok ${extra} ); then
+		varusage="${varusage} [param...]"
+	fi
+
+	echo 'function echo_usage__() {'
+	echo '	echo "Usage: $(basename "$0")'${varusage}'"'
+	echo '	echo_usage 2>/dev/null'
+	echo '}'
+	echo 'if [ "$1" = "--help" ]; then'
+	echo '	echo_usage 2>/dev/null'
+	echo '	exit 0'
+	echo 'fi'
+	echo "${vardecl}"
+	echo 'while [ $# -gt 0 ]; do'
+	echo '	case "$1" in'
+	echo "${varloop}"
+	if ( is ok ${extra} ); then
+		echo '		"--")'
+		echo '              shift'
+		echo '				break'
+		echo '			;;'
+	fi
+	echo '		*)'
+	if ( is ok ${extra} ); then
+		echo '			if ( ! is param "$1" ); then'
+		echo '				break'
+		echo '			fi'
+	fi
+	echo '			echo_usage__ 1>&2'
+	echo '			exit 1'
+	echo '			;;'
+	echo '	esac'
+	echo '	shift'
+	echo 'done'
+	echo "${varcheck}"
+
+	if ( is ok ${forceextra} ); then
+		echo 'if [ $# -eq 0 ]; then'
+		echo '	echo_usage__ 1>&2'
+		echo '	exit 1'
+		echo 'fi'
+	fi
+}
+

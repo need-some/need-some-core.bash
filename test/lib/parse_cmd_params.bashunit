@@ -1,0 +1,242 @@
+#!/bin/bash
+
+before '
+. ${NEEDSOME_TEST_TESTCASE_DIR}/../../src/lib/parse_cmd_params
+function is() {
+	"${NEEDSOME_TEST_TESTCASE_DIR}/../../src/bin/is" "$@"
+}
+export -f is
+'
+
+it "parse single param" '
+	set -- --parama a
+
+	eval "$(parse_cmd_params parama)"
+
+	assert "parameter value" "a" = "$parama"
+'
+
+it "parse single optional param" '
+	set -- --parama a
+
+	eval "$(parse_cmd_params parama:o)"
+
+	assert "parameter set" "1" = "$parama_exist"
+	assert "parameter value" "a" = "$parama"
+'
+
+it "parse single param missing" '
+	shift $#
+
+	function echo_usage() {
+		echo "usage text"
+	}
+
+	result="$(if ( eval "$(parse_cmd_params parama)" 2>&1 ); then
+		assert "error should be thrown" "1" = "1"
+	else
+		echo "error level $?"
+	fi;echo)"
+	assert "usage output" "$result" = "Usage: bashunit --parama value
+usage text
+error level 1"
+'
+
+it "parse single optional param missing" '
+	shift $#
+
+	eval "$(parse_cmd_params parama:o)"
+
+	assert "parameter set" "0" = "$parama_exist"
+	assert "parameter value" "" = "$parama"
+	assert "extra parameter count" "$#" = "0"
+'
+
+it "parse flag" '
+	set -- --paramf
+
+	eval "$(parse_cmd_params paramf:f:o)"
+
+	assert "parameter set" "1" = "$paramf_exist"
+'
+
+it "parse two flags" '
+	set -- --paramf --paramg
+
+	eval "$(parse_cmd_params paramf:f:o paramg:f:o)"
+
+	assert "parameter set" "1" = "$paramf_exist"
+	assert "parameter set" "1" = "$paramg_exist"
+'
+
+it "parse two flags swapped" '
+	set -- --paramg --paramf
+
+	eval "$(parse_cmd_params paramf:f:o paramg:f:o)"
+
+	assert "parameter set" "1" = "$paramf_exist"
+	assert "parameter set" "1" = "$paramg_exist"
+'
+
+it "parse missing optional flag" '
+	set -- --paramg 
+
+	eval "$(parse_cmd_params paramf:f:o paramg:f:o)"
+
+	assert "parameter set" "0" = "$paramf_exist"
+	assert "parameter set" "1" = "$paramg_exist"
+	assert "extra parameter count" "$#" = "0"
+'
+
+it "parse missing mandatory flag" '
+	shift $#
+
+	function echo_usage() {
+		echo "usage text"
+	}
+
+	result="$(if ( eval "$(parse_cmd_params paramf:f)" 2>&1 ); then
+		assert "error should be thrown" "1" = "1"
+	else
+		echo "error level $?"
+	fi;echo)"
+	assert "usage output" "$result" = "Usage: bashunit --paramf
+usage text
+error level 1"
+'
+
+it "parse missing one flag" '
+	shift $#
+
+	eval "$(parse_cmd_params paramf:f:o)"
+
+	assert "parameter set" "0" = "$paramf_exist"
+	assert "extra parameter count" "$#" = "0"
+'
+
+it "parse two missing flag" '
+	shift $#
+
+	eval "$(parse_cmd_params paramf:f:o paramg:f:o)"
+
+	assert "parameter set" "0" = "$paramf_exist"
+	assert "parameter set" "0" = "$paramg_exist"
+	assert "extra parameter count" "$#" = "0"
+'
+
+it "parse optional extra param" '
+	set -- --parama a --paramb b extra "extra 2" "extra3"
+
+	eval "$(parse_cmd_params parama paramb --extra)"
+
+	assert "parameter value" "a" = "$parama"
+	assert "parameter value" "b" = "$paramb"
+	assert "extra parameter value" "$1" = "extra"
+	assert "extra parameter value" "$2" = "extra 2"
+	assert "extra parameter value" "$3" = "extra3"
+	assert "extra parameter count" "$#" = "3"
+'
+
+it "parse optional extra param missing" '
+	set -- --parama a --paramb b
+
+	eval "$(parse_cmd_params parama paramb --extra)"
+
+	assert "parameter value" "a" = "$parama"
+	assert "parameter value" "b" = "$paramb"
+	assert "extra parameter count" "$#" = "0"
+'
+
+it "parse optional extra param paramsyntax" '
+	set -- --parama a "--" --paramb b
+
+	eval "$(parse_cmd_params parama paramb:o --extra)"
+
+	assert "parameter value" "a" = "$parama"
+	assert "parameter value" "" = "$paramb"
+	assert "extra parameter value" "$1" = "--paramb"
+	assert "extra parameter value" "$2" = "b"
+	assert "extra parameter count" "$#" = "2"
+'
+
+
+it "parse mandatory extra param" '
+	set -- --parama a --paramb b extra "extra 2" "extra3"
+
+	eval "$(parse_cmd_params parama paramb --forceextra)"
+
+	assert "parameter value" "a" = "$parama"
+	assert "parameter value" "b" = "$paramb"
+	assert "extra parameter value" "$1" = "extra"
+	assert "extra parameter value" "$2" = "extra 2"
+	assert "extra parameter value" "$3" = "extra3"
+	assert "extra parameter count" "$#" = "3"
+'
+
+it "parse mandatory extra param missing" '
+	set -- --parama a --paramb b
+
+	function echo_usage() {
+		echo "usage text"
+	}
+
+	result="$(if ( eval "$(parse_cmd_params parama paramb --forceextra)" 2>&1 ); then
+		assert "error should be thrown" "1" = "1"
+	else
+		echo "error level $?"
+	fi;echo)"
+	assert "usage output" "$result" = "Usage: bashunit --parama value --paramb value param [param...]
+usage text
+error level 1"
+'
+
+it "parse mandatory extra param paramsyntax" '
+	set -- --parama a "--" --paramb b
+
+	eval "$(parse_cmd_params parama paramb:o --forceextra)"
+
+	assert "parameter value" "a" = "$parama"
+	assert "parameter value" "" = "$paramb"
+	assert "extra parameter value" "$1" = "--paramb"
+	assert "extra parameter value" "$2" = "b"
+	assert "extra parameter count" "$#" = "2"
+'
+
+it "parse param constraint" '
+	set -- --parama a
+
+	function check_parama() {
+		return 0
+	}
+
+	eval "$(parse_cmd_params parama:c)"
+
+	assert "parameter set" "1" = "$parama_exist"
+	assert "parameter value" "a" = "$parama"
+'
+
+it "parse param constraint failed" '
+	set -- --parama a
+
+	function echo_usage() {
+		echo "usage text"
+	}
+
+	function check_parama() {
+		echo parama failed
+		return 4
+	}
+
+	parse_cmd_params parama:c --extra > /tmp/mym
+
+	result="$(if ( eval "$(parse_cmd_params parama:c)" 2>&1 ); then
+		assert "error should be thrown" "1" = "1"
+	else
+		echo "error level $?"
+	fi;echo)"
+	assert "usage output" "$result" = "parama failed
+Usage: bashunit --parama value
+usage text
+error level 4"
+'
+

@@ -1,0 +1,38 @@
+#!/bin/bash
+
+before '
+'
+
+testdata="ok|0|false
+ok||false
+ok|1|true
+ok|yes|true
+ok|true|true
+ok|ok|true
+ok|--default ok|true
+ok|--default nok|false
+ok|--default|true
+nok|0|true
+nok||true
+nok|1|false
+nok|yes|false
+nok|true|false
+nok|ok|false
+nok|--default ok|false
+nok|--default nok|true
+nok|--default|false
+param|param|false
+param|--param|true
+param|--|false"
+while read line; do
+	inputcmd="$(echo "$line" | cut -d "|" -f 1 )"
+	inputparams="$(echo "$line" | cut -d "|" -f 2 )"
+	expected="$(echo "$line" | cut -d "|" -f 3)"
+	it "is $inputcmd $inputparams" '
+		result="$(if $NEEDSOME_TEST_TESTCASE_DIR/../../src/bin/is $inputcmd $inputparams; then echo true; else echo false; fi )"
+		assert "equal" "'"$expected"'" = "$result"
+	'
+done < <(echo "$testdata")
+
+
+

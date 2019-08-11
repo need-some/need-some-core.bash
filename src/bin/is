@@ -1,0 +1,33 @@
+#!/bin/bash
+
+function is_nok() {
+	if ( is_ok "$1" "$2" ); then
+		return 1
+	fi
+}
+
+function is_ok() {
+	def=0
+	if [ "$1" = "--default" ]; then
+		def=1
+		shift
+	fi
+
+	tr=$(echo "$1" | tr "A-Z" "a-z")
+
+	if [ ! \( "${tr}" = "j" -o "${tr}" = "ja" -o "${tr}" = "y" -o "${tr}" = "yes" -o "${tr}" = "t" -o "${tr}" = "true" -o "${tr}" = "ok" -o "${tr}" = "1" -o \( "${tr}" = "" -a "${def}" = "1" \) \) ]; then
+		return 1
+	fi
+}
+
+function is_param() {
+	if [ "$1" = "--" -o $( echo "$1" | cut -c 1-2) != "--" ]; then
+		return 1
+	fi
+}
+
+cmd="is_$1"
+shift
+
+"$cmd" "$@"
+
