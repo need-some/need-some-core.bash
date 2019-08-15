@@ -1,31 +1,34 @@
 #!/bin/bash
 
-before '
-. ${NEEDSOME_TEST_TESTCASE_DIR}/../../src/lib/parse_cmd_params
-function is() {
-	"${NEEDSOME_TEST_TESTCASE_DIR}/../../src/bin/is" "$@"
+function before() {
+	. "${NEEDSOME_TESTEE}"
+	function is() {
+		"${NEEDSOME_TESTEE_DIR}/../bin/is" "$@"
+	}
+	export -f is
 }
-export -f is
-'
 
-it "parse single param" '
+function parse_sing() {
+@testName "parse single param"
 	set -- --parama a
 
 	eval "$(parse_cmd_params parama)"
 
 	assert "parameter value" "a" = "$parama"
-'
-
-it "parse single optional param" '
+}
+ 
+function parse_sing_opt() {
+@testName "parse single optional param"
 	set -- --parama a
 
 	eval "$(parse_cmd_params parama:o)"
 
 	assert "parameter set" "1" = "$parama_exist"
 	assert "parameter value" "a" = "$parama"
-'
+}
 
-it "parse single param missing" '
+function parse_sing_mis() {
+@testName "parse single param missing"
 	shift $#
 
 	function echo_usage() {
@@ -40,9 +43,10 @@ it "parse single param missing" '
 	assert "usage output" "$result" = "Usage: bashunit --parama value
 usage text
 error level 1"
-'
+}
 
-it "parse single optional param missing" '
+function parse_sing_opt_mis() {
+@testName "parse single optional param missing"
 	shift $#
 
 	eval "$(parse_cmd_params parama:o)"
@@ -50,35 +54,39 @@ it "parse single optional param missing" '
 	assert "parameter set" "0" = "$parama_exist"
 	assert "parameter value" "" = "$parama"
 	assert "extra parameter count" "$#" = "0"
-'
+}
 
-it "parse flag" '
+function parse_flag() {
+@testName "parse flag"
 	set -- --paramf
 
 	eval "$(parse_cmd_params paramf:f:o)"
 
 	assert "parameter set" "1" = "$paramf_exist"
-'
+}
 
-it "parse two flags" '
+function parse_two_flag() {
+@testName "parse two flags"
 	set -- --paramf --paramg
 
 	eval "$(parse_cmd_params paramf:f:o paramg:f:o)"
 
 	assert "parameter set" "1" = "$paramf_exist"
 	assert "parameter set" "1" = "$paramg_exist"
-'
+}
 
-it "parse two flags swapped" '
+function parse_two_flag_swap() {
+@testName "parse two flags swapped"
 	set -- --paramg --paramf
 
 	eval "$(parse_cmd_params paramf:f:o paramg:f:o)"
 
 	assert "parameter set" "1" = "$paramf_exist"
 	assert "parameter set" "1" = "$paramg_exist"
-'
+}
 
-it "parse missing optional flag" '
+function parse_mis_opt_flag() {
+@testName "parse missing optional flag"
 	set -- --paramg 
 
 	eval "$(parse_cmd_params paramf:f:o paramg:f:o)"
@@ -86,9 +94,10 @@ it "parse missing optional flag" '
 	assert "parameter set" "0" = "$paramf_exist"
 	assert "parameter set" "1" = "$paramg_exist"
 	assert "extra parameter count" "$#" = "0"
-'
+}
 
-it "parse missing mandatory flag" '
+function parse_mis_man_flag() {
+@testName "parse missing mandatory flag"
 	shift $#
 
 	function echo_usage() {
@@ -103,18 +112,20 @@ it "parse missing mandatory flag" '
 	assert "usage output" "$result" = "Usage: bashunit --paramf
 usage text
 error level 1"
-'
+}
 
-it "parse missing one flag" '
+function parse_one_mis_flag() {
+@testName "parse missing one flag"
 	shift $#
 
 	eval "$(parse_cmd_params paramf:f:o)"
 
 	assert "parameter set" "0" = "$paramf_exist"
 	assert "extra parameter count" "$#" = "0"
-'
+}
 
-it "parse two missing flag" '
+function parse_two_mis_flag() {
+@testName "parse two missing flag"
 	shift $#
 
 	eval "$(parse_cmd_params paramf:f:o paramg:f:o)"
@@ -122,9 +133,10 @@ it "parse two missing flag" '
 	assert "parameter set" "0" = "$paramf_exist"
 	assert "parameter set" "0" = "$paramg_exist"
 	assert "extra parameter count" "$#" = "0"
-'
+}
 
-it "parse optional extra param" '
+function parse_opt_ex() {
+@testName "parse optional extra param"
 	set -- --parama a --paramb b extra "extra 2" "extra3"
 
 	eval "$(parse_cmd_params parama paramb --extra)"
@@ -135,9 +147,10 @@ it "parse optional extra param" '
 	assert "extra parameter value" "$2" = "extra 2"
 	assert "extra parameter value" "$3" = "extra3"
 	assert "extra parameter count" "$#" = "3"
-'
+}
 
-it "parse optional extra param missing" '
+function parse_opt_ex_mis() {
+@testName "parse optional extra param missing"
 	set -- --parama a --paramb b
 
 	eval "$(parse_cmd_params parama paramb --extra)"
@@ -145,9 +158,10 @@ it "parse optional extra param missing" '
 	assert "parameter value" "a" = "$parama"
 	assert "parameter value" "b" = "$paramb"
 	assert "extra parameter count" "$#" = "0"
-'
+}
 
-it "parse optional extra param paramsyntax" '
+function parse_opt_ex_ps() {
+@testName "parse optional extra param paramsyntax"
 	set -- --parama a "--" --paramb b
 
 	eval "$(parse_cmd_params parama paramb:o --extra)"
@@ -157,10 +171,11 @@ it "parse optional extra param paramsyntax" '
 	assert "extra parameter value" "$1" = "--paramb"
 	assert "extra parameter value" "$2" = "b"
 	assert "extra parameter count" "$#" = "2"
-'
+}
 
 
-it "parse mandatory extra param" '
+function parse_man_ex() {
+@testName "parse mandatory extra param"
 	set -- --parama a --paramb b extra "extra 2" "extra3"
 
 	eval "$(parse_cmd_params parama paramb --forceextra)"
@@ -171,9 +186,10 @@ it "parse mandatory extra param" '
 	assert "extra parameter value" "$2" = "extra 2"
 	assert "extra parameter value" "$3" = "extra3"
 	assert "extra parameter count" "$#" = "3"
-'
+}
 
-it "parse mandatory extra param missing" '
+function parse_man_ex_mis() {
+@testName "parse mandatory extra param missing"
 	set -- --parama a --paramb b
 
 	function echo_usage() {
@@ -188,9 +204,10 @@ it "parse mandatory extra param missing" '
 	assert "usage output" "$result" = "Usage: bashunit --parama value --paramb value param [param...]
 usage text
 error level 1"
-'
+}
 
-it "parse mandatory extra param paramsyntax" '
+function parse_man_ex_ps() {
+@testName "parse mandatory extra param paramsyntax"
 	set -- --parama a "--" --paramb b
 
 	eval "$(parse_cmd_params parama paramb:o --forceextra)"
@@ -200,9 +217,10 @@ it "parse mandatory extra param paramsyntax" '
 	assert "extra parameter value" "$1" = "--paramb"
 	assert "extra parameter value" "$2" = "b"
 	assert "extra parameter count" "$#" = "2"
-'
+}
 
-it "parse param constraint" '
+function parse_param_cons() {
+@testName "parse param constraint"
 	set -- --parama a
 
 	function check_parama() {
@@ -213,9 +231,10 @@ it "parse param constraint" '
 
 	assert "parameter set" "1" = "$parama_exist"
 	assert "parameter value" "a" = "$parama"
-'
+}
 
-it "parse param constraint failed" '
+function parse_param_cons_failed() {
+@testName "parse param constraint failed"
 	set -- --parama a
 
 	function echo_usage() {
@@ -238,5 +257,5 @@ it "parse param constraint failed" '
 Usage: bashunit --parama value
 usage text
 error level 4"
-'
+}
 

@@ -1,18 +1,16 @@
 #!/bin/bash
 
-before '
-'
-
-it "readparam from param" '
-	result="$($NEEDSOME_TEST_TESTCASE_DIR/../../src/lib/read-param test 1 )"
+function read_param() {
+@testName readparam from param
+	result="$("$NEEDSOME_TESTEE" test 1 )"
 	expected="test 1"
 	assert "equal" "$expected" = "$result"
-'
+}
 
-it "readparam from stdin" '
-	result="$(echo test 2 | $NEEDSOME_TEST_TESTCASE_DIR/../../src/lib/read-param )"
+function read_stdin() {
+@testName readparam from stdin
+	result="$(echo test 2 | "$NEEDSOME_TESTEE" )"
 	expected="test 2"
 	assert "equal" "$expected" = "$result"
-'
-
+}
 
